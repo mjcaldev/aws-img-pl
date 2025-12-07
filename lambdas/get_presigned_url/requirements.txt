@@ -1,1 +1,1 @@
-boto3
+# boto3 NOT required — provided by AWS Lambda runtime
