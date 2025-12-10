@@ -5,7 +5,7 @@ locals {
 
 resource "aws_lambda_function" "trigger_step_function" {
   function_name = "${var.project_name}-trigger-step-fn"
-  role          = aws_iam_role_lambda_exec_role.arn
+  role          = aws_iam_role.lambda_exec_role.arn
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
@@ -16,7 +16,7 @@ resource "aws_lambda_function" "trigger_step_function" {
 
 resource "aws_lambda_function" "resize_image" {
   function_name = "${var.project_name}-resize-image"
-  role          = aws_iam_role_lambda_exec_role.arn
+  role          = aws_iam_role.lambda_exec_role.arn
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
@@ -27,7 +27,7 @@ resource "aws_lambda_function" "resize_image" {
 
 resource "aws_lambda_function" "rekognition_labels" {
   function_name = "${var.project_name}-rekognition-labels"
-  role          = aws_iam_role_lambda_exec_role.arn
+  role          = aws_iam_role.lambda_exec_role.arn
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
@@ -38,7 +38,7 @@ resource "aws_lambda_function" "rekognition_labels" {
 
 resource "aws_lambda_function" "store_metadata" {
   function_name = "${var.project_name}-store-metadata"
-  role          = aws_iam_role_lambda_exec_role.arn
+  role          = aws_iam_role.lambda_exec_role.arn
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
@@ -49,7 +49,7 @@ resource "aws_lambda_function" "store_metadata" {
 
 resource "aws_lambda_function" "get_presigned_url" {
   function_name = "${var.project_name}-get-presigned-url"
-  role          = aws_iam_role_lambda_exec_role.arn
+  role          = aws_iam_role.lambda_exec_role.arn
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
@@ -59,7 +59,7 @@ resource "aws_lambda_function" "get_presigned_url" {
 
   environment {
     variables = {
-      UPLOAD_BUCKET = aws_s3_bucket_uploads.bucket
+      UPLOAD_BUCKET = aws_s3_bucket.uploads.bucket
     }
   }
 }

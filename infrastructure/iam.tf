@@ -39,8 +39,8 @@ data "aws_iam_policy_document" "lambda_exec_policy" {
     ]
 
     resources = [
-      aws_s3_bucket_uploads.arn,
-      "${aws_s3_bucket_uploads.arn}/*",
+      aws_s3_bucket.uploads.arn,
+      "${aws_s3_bucket.uploads.arn}/*",
     ]
   }
 
@@ -54,7 +54,7 @@ data "aws_iam_policy_document" "lambda_exec_policy" {
       "dynamodb:GetItem",
     ]
 
-    resources = [aws_dynamodb_table_image_metadata.arn]
+    resources = [aws_dynamodb_table.image_metadata.arn]
   }
 
   statement {
@@ -86,6 +86,6 @@ resource "aws_iam_policy" "lambda_exec_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_exec_attach" {
-  role       = aws_iam_role_lambda_exec_role.name
-  policy_arn = aws_iam_policy_lambda_exec_policy.arn
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = aws_iam_policy.lambda_exec_policy.arn
 }

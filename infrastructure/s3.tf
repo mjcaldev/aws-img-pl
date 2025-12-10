@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "uploads" {
 }
 
 resource "aws_s3_bucket_public_access_block" "uploads" {
-  bucket = aws_s3_bucket_uploads.id
+  bucket = aws_s3_bucket.uploads.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -13,7 +13,7 @@ resource "aws_s3_bucket_public_access_block" "uploads" {
 }
 
 resource "aws_s3_bucket_versioning" "uploads" {
-  bucket = aws_s3_bucket_uploads.id
+  bucket = aws_s3_bucket.uploads.id
 
   versioning_configuration {
     status = "Enabled"

@@ -21,9 +21,9 @@ data "aws_iam_policy_document" "step_functions_policy" {
       "lambda:InvokeFunction"
     ]
     resources = [
-      aws_lambda_function_resize_image.arn,
-      aws_lambda_function_rekognition_labels.arn,
-      aws_lambda_function_store_metadata.arn,
+      aws_lambda_function.resize_image.arn,
+      aws_lambda_function.rekognition_labels.arn,
+      aws_lambda_function.store_metadata.arn,
     ]
   }
 }
@@ -34,8 +34,8 @@ resource "aws_iam_policy" "step_functions_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "stepfn_attach" {
-  role       = aws_iam_role_step_functions_role.name
-  policy_arn = aws_iam_policy_step_functions_policy.arn
+  role       = aws_iam_role.step_functions_role.name
+  policy_arn = aws_iam_policy.step_functions_policy.arn
 }
 
 locals {
@@ -45,17 +45,17 @@ locals {
     States = {
       "ResizeImage" = {
         Type       = "Task"
-        Resource   = aws_lambda_function_resize_image.arn
+        Resource   = aws_lambda_function.resize_image.arn
         Next       = "RekognitionLabels"
       }
       "RekognitionLabels" = {
         Type       = "Task"
-        Resource   = aws_lambda_function_rekognition_labels.arn
+        Resource   = aws_lambda_function.rekognition_labels.arn
         Next       = "StoreMetadata"
       }
       "StoreMetadata" = {
         Type       = "Task"
-        Resource   = aws_lambda_function_store_metadata.arn
+        Resource   = aws_lambda_function.store_metadata.arn
         End        = true
       }
     }
@@ -64,6 +64,6 @@ locals {
 
 resource "aws_sfn_state_machine" "image_pipeline" {
   name         = "${var.project_name}-state-machine"
-  role_arn     = aws_iam_role_step_functions_role.arn
+  role_arn     = aws_iam_role.step_functions_role.arn
   definition   = local.stepfn_definition
 }

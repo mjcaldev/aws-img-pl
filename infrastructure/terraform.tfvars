@@ -1,0 +1,1 @@
+uploads_bucket_name = "aws-img-pl-uploads"
