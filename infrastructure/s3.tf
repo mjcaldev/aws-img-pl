@@ -20,4 +20,21 @@ resource "aws_s3_bucket_versioning" "uploads" {
   }
 }
 
-# later add an aws_s3_bucket_notification here to wire S3 → trigger_step_function Lambda, which is the standard Terraform pattern for S3→Lambda events.
+resource "aws_lambda_permission" "allow_s3_to_invoke" {
+  statement_id  = "AllowS3InvokeTrigger"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.trigger_step_function.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.uploads.arn
+}
+
+resource "aws_s3_bucket_notification" "uploads_trigger" {
+  bucket = aws_s3_bucket.uploads.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.trigger_step_function.arn
+    events              = ["s3:ObjectCreated:*"]
+  }
+
+  depends_on = [aws_lambda_permission.allow_s3_to_invoke]
+}
