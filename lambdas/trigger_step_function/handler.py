@@ -21,6 +21,14 @@ def lambda_handler(event, context):
         "bucket": bucket,
         "key": key,
     }
+    
+    # loop guard
+    if key.startswith("processed/"):
+        print(f"Skipping already processed object: {key}")
+        return {
+            "statusCode": 200,
+            "body": "Skipped processed object"
+        }
 
     sfn.start_execution(
         stateMachineArn=SFN_ARN,
