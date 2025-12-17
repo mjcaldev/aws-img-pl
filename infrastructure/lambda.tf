@@ -12,6 +12,12 @@ resource "aws_lambda_function" "trigger_step_function" {
 
   filename         = "../lambdas/trigger_step_function/build.zip"
   source_code_hash = filebase64sha256("../lambdas/trigger_step_function/build.zip")
+
+   environment {
+    variables = {
+      STATE_MACHINE_ARN = aws_sfn_state_machine.image_pipeline.arn
+    }
+  }
 }
 
 resource "aws_lambda_function" "resize_image" {
