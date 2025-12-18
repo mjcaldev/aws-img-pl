@@ -13,6 +13,16 @@ def lambda_handler(event, context):
 
     bucket = event["bucket"]
     key = event["key"]
+    
+    # stop infinite recursion
+    if key.startswith("processed/"):
+        print(f"Skipping already processed object: {key}")
+        return event
+    # only handle images
+    if not key.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+        print(f"Skipping non-image file: {key}")
+        return event   
+
 
     output_key = f"processed/{key}"
 
