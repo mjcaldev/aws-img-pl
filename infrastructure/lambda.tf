@@ -51,6 +51,12 @@ resource "aws_lambda_function" "store_metadata" {
 
   filename         = "../lambdas/store_metadata/build.zip"
   source_code_hash = filebase64sha256("../lambdas/store_metadata/build.zip")
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.image_metadata.name
+    }
+  }
 }
 
 resource "aws_lambda_function" "get_presigned_url" {

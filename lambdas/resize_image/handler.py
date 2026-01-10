@@ -23,8 +23,8 @@ def lambda_handler(event, context):
         print(f"Skipping non-image file: {key}")
         return event   
 
-
-    output_key = f"processed/{key}"
+    filename = key.split("/")[-1]
+    output_key = f"processed/{filename}"
 
     # Minimal functional version: copy file instead of resizing
     s3.copy_object(
