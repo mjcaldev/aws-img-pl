@@ -26,6 +26,8 @@ resource "aws_lambda_function" "resize_image" {
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
+  timeout       = 120
+  memory_size   = 512
 
   filename         = "../lambdas/resize_image/build.zip"
   source_code_hash = filebase64sha256("../lambdas/resize_image/build.zip")
@@ -37,6 +39,8 @@ resource "aws_lambda_function" "rekognition_labels" {
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
+  timeout       = 120
+  memory_size   = 512
 
   filename         = "../lambdas/rekognition_labels/build.zip"
   source_code_hash = filebase64sha256("../lambdas/rekognition_labels/build.zip")
@@ -48,6 +52,8 @@ resource "aws_lambda_function" "store_metadata" {
   handler       = "handler.lambda_handler"
   runtime       = local.lambda_runtime
   architectures = [local.lambda_arch]
+  timeout       = 120
+  memory_size   = 512
 
   filename         = "../lambdas/store_metadata/build.zip"
   source_code_hash = filebase64sha256("../lambdas/store_metadata/build.zip")

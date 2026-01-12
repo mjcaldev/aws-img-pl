@@ -46,17 +46,67 @@ locals {
       "ResizeImage" = {
         Type       = "Task"
         Resource   = aws_lambda_function.resize_image.arn
-        Next       = "RekognitionLabels"
+        Retry = [
+          {
+            ErrorEquals     = ["States.TaskFailed", "States.Timeout", "States.ALL"]
+            IntervalSeconds = 2
+            BackoffRate     = 2.0
+            MaxAttempts     = 3
+          }
+        ]
+        Catch = [
+          {
+            ErrorEquals = ["States.ALL"]
+            Next        = "PipelineFailed"
+            ResultPath  = "$.error"
+          }
+        ]
+        Next = "RekognitionLabels"
       }
       "RekognitionLabels" = {
         Type       = "Task"
         Resource   = aws_lambda_function.rekognition_labels.arn
-        Next       = "StoreMetadata"
+        Retry = [
+          {
+            ErrorEquals     = ["States.TaskFailed", "States.Timeout", "States.ALL"]
+            IntervalSeconds = 2
+            BackoffRate     = 2.0
+            MaxAttempts     = 3
+          }
+        ]
+        Catch = [
+          {
+            ErrorEquals = ["States.ALL"]
+            Next        = "PipelineFailed"
+            ResultPath  = "$.error"
+          }
+        ]
+        Next = "StoreMetadata"
       }
       "StoreMetadata" = {
         Type       = "Task"
         Resource   = aws_lambda_function.store_metadata.arn
-        End        = true
+        Retry = [
+          {
+            ErrorEquals     = ["States.TaskFailed", "States.Timeout", "States.ALL"]
+            IntervalSeconds = 2
+            BackoffRate     = 2.0
+            MaxAttempts     = 3
+          }
+        ]
+        Catch = [
+          {
+            ErrorEquals = ["States.ALL"]
+            Next        = "PipelineFailed"
+            ResultPath  = "$.error"
+          }
+        ]
+        End = true
+      }
+      "PipelineFailed" = {
+        Type = "Fail"
+        Error = "PipelineExecutionFailed"
+        Cause = "An error occurred during image processing pipeline execution"
       }
     }
   })
