@@ -29,15 +29,15 @@ def lambda_handler(event, context):
         if labels is None:
             raise ValueError("Missing required field: labels")
 
-        table.put_item(
-            Item={
-                "image_key": key,
-                "bucket": bucket,
-                "labels": labels
-            }
-        )
+    table.put_item(
+        Item={
+            "image_key": key,
+            "bucket": bucket,
+            "labels": labels
+        }
+    )
 
-        return {"status": "stored", "image_key": key}
+    return {"status": "stored", "image_key": key}
 
     except Exception as e:
         logger.exception("Failed to store metadata in DynamoDB")
