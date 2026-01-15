@@ -2,6 +2,7 @@ import json
 import boto3
 import logging
 import os
+from datetime import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -19,25 +20,35 @@ def lambda_handler(event, context):
         logger.info(f"Event: {event}")
 
         bucket = event.get("bucket")
-        key = event.get("processed_key")
+        processed_key = event.get("processed_key")
+        original_key = event.get("key")  # Original upload key from Step Functions input
         labels = event.get("labels")
 
         if not bucket:
             raise ValueError("Missing required field: bucket")
-        if not key:
+        if not processed_key:
             raise ValueError("Missing required field: processed_key")
         if labels is None:
             raise ValueError("Missing required field: labels")
 
-    table.put_item(
-        Item={
-            "image_key": key,
-            "bucket": bucket,
-            "labels": labels
-        }
-    )
+        # Use original key for lookup (what frontend polls with)
+        # Fallback to processed_key if original_key not available
+        image_key = original_key if original_key else processed_key
+        
+        logger.info(f"Storing metadata: image_key={image_key}, processed_key={processed_key}, labels_count={len(labels)}")
 
-    return {"status": "stored", "image_key": key}
+        table.put_item(
+            Item={
+                "image_key": image_key,
+                "bucket": bucket,
+                "processed_key": processed_key,
+                "labels": labels,
+                "created_at": datetime.utcnow().isoformat() + "Z"
+            }
+        )
+
+        logger.info(f"Successfully stored metadata for image_key: {image_key}")
+        return {"status": "stored", "image_key": image_key}
 
     except Exception as e:
         logger.exception("Failed to store metadata in DynamoDB")

@@ -32,5 +32,6 @@ def lambda_handler(event, context):
 
     return {
         "bucket": bucket,
+        "key": key,  # Original key for frontend polling
         "processed_key": output_key
     }

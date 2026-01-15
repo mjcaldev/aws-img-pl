@@ -81,3 +81,20 @@ resource "aws_lambda_function" "get_presigned_url" {
     }
   }
 }
+
+resource "aws_lambda_function" "get_results" {
+  function_name = "${var.project_name}-get-results"
+  role          = aws_iam_role.lambda_exec_role.arn
+  handler       = "handler.lambda_handler"
+  runtime       = local.lambda_runtime
+  architectures = [local.lambda_arch]
+
+  filename         = "../lambdas/get_results/build.zip"
+  source_code_hash = filebase64sha256("../lambdas/get_results/build.zip")
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.image_metadata.name
+    }
+  }
+}
