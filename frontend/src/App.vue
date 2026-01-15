@@ -17,13 +17,14 @@ const handleFileSelect = (event) => {
   objectKey.value = null
 }
 
-const getPresignedUrl = async () => {
+const getPresignedUrl = async (contentType) => {
   try {
     const response = await fetch(`${apiBaseUrl}/upload-url`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({ contentType })
     })
     
     if (!response.ok) {
@@ -49,7 +50,7 @@ const uploadImage = async () => {
   uploadStatus.value = 'Getting upload URL...'
 
   try {
-    const presignedData = await getPresignedUrl()
+    const presignedData = await getPresignedUrl(selectedFile.value.type)
     if (!presignedData) {
       isUploading.value = false
       return
@@ -59,7 +60,10 @@ const uploadImage = async () => {
 
     const uploadResponse = await fetch(presignedData.uploadUrl, {
       method: 'PUT',
-      body: selectedFile.value
+      body: selectedFile.value,
+      headers: {
+        'Content-Type': selectedFile.value.type
+      }
     })
 
     if (uploadResponse.ok) {
