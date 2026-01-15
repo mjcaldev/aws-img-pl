@@ -7,14 +7,26 @@ const isUploading = ref(false)
 const uploadStatus = ref('')
 const objectKey = ref(null)
 const labels = ref([])
-const isPolling = ref(false)
+
+// Processing state: PROCESSING_ACTIVE | PROCESSING_BACKGROUND | COMPLETE | FAILED
+const processingState = ref(null)
+const MAX_ACTIVE_POLLING_MS = 15000 // 15 seconds - active polling phase
+const MAX_TOTAL_POLLING_MS = 300000 // 5 minutes - hard timeout
+const POLLING_INTERVAL_MS = 3000 // 3 seconds
+
 let pollingInterval = null
+let pollingStartTime = null
+let activePollingStartTime = null
+let activePollingTimeout = null
+let currentImageKey = null
 
 const handleFileSelect = (event) => {
   selectedFile.value = event.target.files[0]
   uploadStatus.value = ''
   labels.value = []
   objectKey.value = null
+  processingState.value = null
+  stopPolling()
 }
 
 const getPresignedUrl = async (contentType) => {
@@ -97,39 +109,115 @@ const fetchResults = async (imageKey) => {
   }
 }
 
-const startPolling = (imageKey) => {
+const stopPolling = () => {
   if (pollingInterval) {
     clearInterval(pollingInterval)
+    pollingInterval = null
   }
+  if (activePollingTimeout) {
+    clearTimeout(activePollingTimeout)
+    activePollingTimeout = null
+  }
+  pollingStartTime = null
+  activePollingStartTime = null
+}
 
-  isPolling.value = true
-  pollingInterval = setInterval(async () => {
-    const response = await fetchResults(imageKey)
-    
-    if (!response) {
-      return // Continue polling on error
+const performPoll = async (imageKey) => {
+  // Check total timeout (prevents infinite polling across all phases)
+  if (pollingStartTime) {
+    const totalElapsed = Date.now() - pollingStartTime
+    if (totalElapsed > MAX_TOTAL_POLLING_MS) {
+      processingState.value = 'FAILED'
+      uploadStatus.value = 'Error: Processing timeout - maximum wait time exceeded'
+      stopPolling()
+      return
     }
-    
-    if (response.status === "COMPLETE" && response.results && response.results.labels) {
-      labels.value = response.results.labels
-      uploadStatus.value = '✓ Processing complete!'
-      isPolling.value = false
-      clearInterval(pollingInterval)
-      pollingInterval = null
-    } else if (response.status === "FAILED") {
-      uploadStatus.value = `Error: ${response.reason || 'Processing failed'}`
-      isPolling.value = false
-      clearInterval(pollingInterval)
-      pollingInterval = null
+  }
+  
+  const response = await fetchResults(imageKey)
+  
+  if (!response) {
+    return // Continue polling on network error
+  }
+  
+  if (response.status === "COMPLETE" && response.results && response.results.labels) {
+    labels.value = response.results.labels
+    uploadStatus.value = '✓ Processing complete!'
+    processingState.value = 'COMPLETE'
+    stopPolling()
+  } else if (response.status === "FAILED") {
+    uploadStatus.value = `Error: ${response.reason || 'Processing failed'}`
+    processingState.value = 'FAILED'
+    stopPolling()
+  } else if (response.status === "PROCESSING") {
+    // Check if we should transition to background phase
+    if (processingState.value === 'PROCESSING_ACTIVE' && activePollingStartTime) {
+      const activeElapsed = Date.now() - activePollingStartTime
+      if (activeElapsed >= MAX_ACTIVE_POLLING_MS) {
+        // Transition to background: stop polling, backend continues processing
+        stopPolling()
+        processingState.value = 'PROCESSING_BACKGROUND'
+        uploadStatus.value = 'Processing is taking longer than usual...'
+      }
     }
-    // If status is "PROCESSING", continue polling (no action needed)
-  }, 3000)
+  }
+}
+
+const startPolling = (imageKey) => {
+  // Stop any existing polling
+  stopPolling()
+  
+  currentImageKey = imageKey
+  processingState.value = 'PROCESSING_ACTIVE'
+  pollingStartTime = Date.now()
+  activePollingStartTime = Date.now()
+  
+  // Poll immediately on start
+  performPoll(imageKey)
+  
+  // Set up interval for active polling phase
+  pollingInterval = setInterval(() => {
+    performPoll(imageKey)
+  }, POLLING_INTERVAL_MS)
+  
+  // Set timeout to transition to background after active phase
+  // Backgrounding after 15s prevents excessive polling while backend continues processing
+  activePollingTimeout = setTimeout(() => {
+    if (processingState.value === 'PROCESSING_ACTIVE') {
+      stopPolling()
+      processingState.value = 'PROCESSING_BACKGROUND'
+      uploadStatus.value = 'Processing is taking longer than usual...'
+    }
+  }, MAX_ACTIVE_POLLING_MS)
+}
+
+const resumePolling = () => {
+  if (!currentImageKey) return
+  
+  // Resume active polling phase
+  processingState.value = 'PROCESSING_ACTIVE'
+  activePollingStartTime = Date.now()
+  
+  // Poll immediately on resume
+  performPoll(currentImageKey)
+  
+  // Set up interval for active polling phase
+  pollingInterval = setInterval(() => {
+    performPoll(currentImageKey)
+  }, POLLING_INTERVAL_MS)
+  
+  // Set timeout to transition to background again if needed
+  activePollingTimeout = setTimeout(() => {
+    if (processingState.value === 'PROCESSING_ACTIVE') {
+      stopPolling()
+      processingState.value = 'PROCESSING_BACKGROUND'
+      uploadStatus.value = 'Processing is taking longer than usual...'
+    }
+  }, MAX_ACTIVE_POLLING_MS)
 }
 
 onUnmounted(() => {
-  if (pollingInterval) {
-    clearInterval(pollingInterval)
-  }
+  stopPolling()
 })
 </script>
 
@@ -170,8 +258,15 @@ onUnmounted(() => {
           {{ uploadStatus }}
         </div>
 
-        <div v-if="isPolling" class="polling-indicator">
+        <div v-if="processingState === 'PROCESSING_ACTIVE'" class="polling-indicator">
           ⏳ Polling for results...
+        </div>
+
+        <div v-if="processingState === 'PROCESSING_BACKGROUND'" class="background-message">
+          <p>This is taking a bit longer than usual. You can safely leave this page and check back shortly.</p>
+          <button @click="resumePolling" class="btn-secondary">
+            Check again
+          </button>
         </div>
 
         <div v-if="labels.length > 0" class="results-section">
@@ -282,6 +377,37 @@ h1 {
   text-align: center;
   color: #7f8c8d;
   font-style: italic;
+}
+
+.background-message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.background-message p {
+  margin: 0 0 1rem 0;
+  color: #856404;
+}
+
+.btn-secondary {
+  background: white;
+  color: #3498db;
+  border: 2px solid #3498db;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #ecf0f1;
+  border-color: #2980b9;
 }
 
 .results-section {
