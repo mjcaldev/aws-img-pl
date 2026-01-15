@@ -30,6 +30,18 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "uploads" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+
+  cors_rule {
+    allowed_origins = ["http://localhost:5173"]
+    allowed_methods = ["PUT", "GET", "HEAD"]
+    allowed_headers = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
 resource "aws_lambda_permission" "allow_s3_to_invoke" {
   statement_id  = "AllowS3InvokeTrigger"
   action        = "lambda:InvokeFunction"

@@ -48,7 +48,7 @@ locals {
         Resource   = aws_lambda_function.resize_image.arn
         Retry = [
           {
-            ErrorEquals     = ["States.TaskFailed", "States.Timeout", "States.ALL"]
+            ErrorEquals     = ["States.ALL"]
             IntervalSeconds = 2
             BackoffRate     = 2.0
             MaxAttempts     = 3
@@ -68,7 +68,7 @@ locals {
         Resource   = aws_lambda_function.rekognition_labels.arn
         Retry = [
           {
-            ErrorEquals     = ["States.TaskFailed", "States.Timeout", "States.ALL"]
+            ErrorEquals     = ["States.ALL"]
             IntervalSeconds = 2
             BackoffRate     = 2.0
             MaxAttempts     = 3
@@ -88,7 +88,7 @@ locals {
         Resource   = aws_lambda_function.store_metadata.arn
         Retry = [
           {
-            ErrorEquals     = ["States.TaskFailed", "States.Timeout", "States.ALL"]
+            ErrorEquals     = ["States.ALL"]
             IntervalSeconds = 2
             BackoffRate     = 2.0
             MaxAttempts     = 3

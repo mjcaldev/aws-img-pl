@@ -7,14 +7,16 @@ s3 = boto3.client("s3")
 BUCKET = os.environ.get("UPLOAD_BUCKET")
 
 def lambda_handler(event, context):
-    body = json.loads(event.get("body", "{}"))
+    # Safely handle missing or None body from HTTP API
+    body_str = event.get("body") or "{}"
+    body = json.loads(body_str)
 
     image_id = str(uuid.uuid4())
     key = f"uploads/{image_id}.jpg"
 
     url = s3.generate_presigned_url(
         "put_object",
-        Params={"Bucket": BUCKET, "Key": key, "ContentType": "image/jpeg"},
+        Params={"Bucket": BUCKET, "Key": key},
         ExpiresIn=300
     )
 

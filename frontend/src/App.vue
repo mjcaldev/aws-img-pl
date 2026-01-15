@@ -59,10 +59,7 @@ const uploadImage = async () => {
 
     const uploadResponse = await fetch(presignedData.uploadUrl, {
       method: 'PUT',
-      body: selectedFile.value,
-      headers: {
-        'Content-Type': selectedFile.value.type
-      }
+      body: selectedFile.value
     })
 
     if (uploadResponse.ok) {
