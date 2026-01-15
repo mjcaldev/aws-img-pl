@@ -86,9 +86,6 @@ const fetchResults = async (imageKey) => {
     const response = await fetch(`${apiBaseUrl}/results?image_key=${encodeURIComponent(imageKey)}`)
     
     if (!response.ok) {
-      if (response.status === 404) {
-        return null
-      }
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     
@@ -107,15 +104,25 @@ const startPolling = (imageKey) => {
 
   isPolling.value = true
   pollingInterval = setInterval(async () => {
-    const results = await fetchResults(imageKey)
+    const response = await fetchResults(imageKey)
     
-    if (results && results.labels) {
-      labels.value = results.labels
+    if (!response) {
+      return // Continue polling on error
+    }
+    
+    if (response.status === "COMPLETE" && response.results && response.results.labels) {
+      labels.value = response.results.labels
       uploadStatus.value = '✓ Processing complete!'
       isPolling.value = false
       clearInterval(pollingInterval)
       pollingInterval = null
+    } else if (response.status === "FAILED") {
+      uploadStatus.value = `Error: ${response.reason || 'Processing failed'}`
+      isPolling.value = false
+      clearInterval(pollingInterval)
+      pollingInterval = null
     }
+    // If status is "PROCESSING", continue polling (no action needed)
   }, 3000)
 }
 
