@@ -228,127 +228,74 @@ onUnmounted(() => {
       <p class="subtitle">Serverless AWS architecture for automated image analysis</p>
     </header>
 
-    <!-- Architecture Diagram -->
     <section class="architecture-section">
       <h2>System Architecture</h2>
       <div class="diagram">
-        <!-- Upload Request Flow -->
-        <div class="diagram-row">
+        <div class="diagram-flow">
+          <!-- Vue Frontend -->
           <div class="diagram-box frontend">
-            <div class="box-icon">🌐</div>
             <div class="box-label">Vue Frontend</div>
           </div>
-          <div class="arrow">→</div>
-          <div class="diagram-box api">
-            <div class="box-icon">🚪</div>
-            <div class="box-label">API Gateway</div>
-            <div class="box-sublabel">POST /upload-url</div>
+          <div class="arrow-down">▼<br>POST /upload-url</div>
+          
+          <!-- API Gateway → Lambda -->
+          <div class="diagram-row">
+            <div class="diagram-box api">
+              <div class="box-label">API Gateway</div>
+            </div>
+            <div class="arrow-right">→</div>
+            <div class="diagram-box lambda">
+              <div class="box-label">Lambda</div>
+              <div class="box-sublabel">Presigned URL</div>
+            </div>
           </div>
-          <div class="arrow">→</div>
-          <div class="diagram-box lambda">
-            <div class="box-icon">⚡</div>
-            <div class="box-label">Lambda</div>
-            <div class="box-sublabel">Presigned URL Generator</div>
-          </div>
-        </div>
-        
-        <!-- Direct Upload Flow -->
-        <div class="diagram-row">
-          <div class="diagram-box frontend">
-            <div class="box-icon">🌐</div>
-            <div class="box-label">Vue Frontend</div>
-          </div>
-          <div class="arrow">→</div>
+          
+          <div class="arrow-down">▼<br>PUT (Presigned URL)</div>
+          
+          <!-- S3 Bucket -->
           <div class="diagram-box s3">
-            <div class="box-icon">🪣</div>
             <div class="box-label">S3 Bucket</div>
-            <div class="box-sublabel">PUT (Presigned URL)</div>
           </div>
-        </div>
-
-        <!-- Event Trigger Flow -->
-        <div class="diagram-row">
-          <div class="diagram-box s3">
-            <div class="box-icon">🪣</div>
-            <div class="box-label">S3 Bucket</div>
-            <div class="box-sublabel">ObjectCreated Event</div>
-          </div>
-          <div class="arrow">→</div>
+          <div class="arrow-down">▼<br>ObjectCreated Event</div>
+          
+          <!-- Lambda Trigger -->
           <div class="diagram-box lambda">
-            <div class="box-icon">⚡</div>
             <div class="box-label">Lambda</div>
             <div class="box-sublabel">Trigger</div>
           </div>
-          <div class="arrow">→</div>
+          <div class="arrow-down">▼<br>StartExecution</div>
+          
+          <!-- Step Functions -->
           <div class="diagram-box stepfn">
-            <div class="box-icon">🔄</div>
-            <div class="box-label">Step Functions</div>
-            <div class="box-sublabel">StartExecution</div>
+            <div class="box-label">Step Functions State Machine</div>
+            <div class="box-sublabel">Resize → Rekognition → Store Meta</div>
           </div>
-        </div>
-
-        <!-- Processing Pipeline -->
-        <div class="diagram-row">
-          <div class="diagram-box stepfn">
-            <div class="box-icon">🔄</div>
-            <div class="box-label">Step Functions</div>
-            <div class="box-sublabel">State Machine</div>
+          
+          <!-- Arrows from Step Functions to S3 and DynamoDB -->
+          <div class="diagram-row arrows-from-stepfn">
+            <div class="arrow-down">▼</div>
+            <div class="arrow-down">▼</div>
           </div>
-          <div class="arrow">→</div>
-          <div class="diagram-box lambda">
-            <div class="box-icon">⚡</div>
-            <div class="box-label">Resize</div>
+          
+          <!-- S3 and DynamoDB side by side -->
+          <div class="diagram-row">
+            <div class="diagram-box s3">
+              <div class="box-label">S3</div>
+              <div class="box-sublabel">(processed)</div>
+            </div>
+            <div class="diagram-box dynamodb">
+              <div class="box-label">DynamoDB</div>
+              <div class="box-sublabel">(metadata)</div>
+            </div>
           </div>
-          <div class="arrow">→</div>
-          <div class="diagram-box rekognition">
-            <div class="box-icon">👁️</div>
-            <div class="box-label">Rekognition</div>
-          </div>
-          <div class="arrow">→</div>
-          <div class="diagram-box dynamodb">
-            <div class="box-icon">💾</div>
-            <div class="box-label">Store Metadata</div>
-          </div>
-        </div>
-
-        <!-- Output Flow -->
-        <div class="diagram-row">
-          <div class="diagram-box stepfn">
-            <div class="box-icon">🔄</div>
-            <div class="box-label">Step Functions</div>
-          </div>
-          <div class="arrow">→</div>
-          <div class="diagram-box s3">
-            <div class="box-icon">🪣</div>
-            <div class="box-label">S3</div>
-            <div class="box-sublabel">processed/</div>
-          </div>
-          <div class="arrow" style="margin-left: 2rem;">→</div>
-          <div class="diagram-box dynamodb">
-            <div class="box-icon">💾</div>
-            <div class="box-label">DynamoDB</div>
-            <div class="box-sublabel">metadata</div>
-          </div>
-        </div>
-
-        <!-- Polling Flow -->
-        <div class="diagram-row">
-          <div class="diagram-box frontend">
-            <div class="box-icon">🌐</div>
+          
+          <!-- GET /results from DynamoDB (aligned right) -->
+          <div class="arrow-down arrow-from-right">▼<br>GET /results</div>
+          
+          <!-- Vue Frontend Polling -->
+          <div class="diagram-box frontend diagram-right">
             <div class="box-label">Vue Frontend</div>
-            <div class="box-sublabel">Polling</div>
-          </div>
-          <div class="arrow">↔</div>
-          <div class="diagram-box api">
-            <div class="box-icon">🚪</div>
-            <div class="box-label">API Gateway</div>
-            <div class="box-sublabel">GET /results</div>
-          </div>
-          <div class="arrow">→</div>
-          <div class="diagram-box dynamodb">
-            <div class="box-icon">💾</div>
-            <div class="box-label">DynamoDB</div>
-            <div class="box-sublabel">metadata</div>
+            <div class="box-sublabel">(Polling)</div>
           </div>
         </div>
       </div>
@@ -700,5 +647,140 @@ h1 {
 .label-item:hover {
   background: #edf2f7;
   border-color: #cbd5e0;
+}
+
+.architecture-section {
+  margin: 2rem 0 3rem 0;
+  padding: 2rem;
+  background: #f7fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.architecture-section h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  color: #2d3748;
+  font-weight: 600;
+  text-align: center;
+}
+
+.diagram {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.diagram-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.diagram-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+  position: relative;
+}
+
+.arrows-from-stepfn {
+  gap: 0;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px;
+}
+
+.arrows-from-stepfn .arrow-down {
+  flex: 1;
+  padding: 0.25rem 0;
+}
+
+.diagram-box {
+  padding: 1rem 1.5rem;
+  background: white;
+  border: 2px solid #cbd5e0;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 150px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.diagram-box.frontend {
+  border-color: #4299e1;
+  background: #ebf8ff;
+}
+
+.diagram-box.api {
+  border-color: #ed8936;
+  background: #fffaf0;
+}
+
+.diagram-box.lambda {
+  border-color: #48bb78;
+  background: #f0fff4;
+}
+
+.diagram-box.s3 {
+  border-color: #9f7aea;
+  background: #faf5ff;
+}
+
+.diagram-box.stepfn {
+  border-color: #f56565;
+  background: #fff5f5;
+}
+
+.diagram-box.dynamodb {
+  border-color: #718096;
+  background: #f7fafc;
+}
+
+.box-label {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.95rem;
+}
+
+.box-sublabel {
+  font-size: 0.8rem;
+  color: #718096;
+  margin-top: 0.25rem;
+  font-weight: 400;
+}
+
+.arrow-down {
+  color: #4a5568;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.arrow-down br {
+  display: block;
+  margin: 0.25rem 0;
+}
+
+.arrow-right {
+  color: #4a5568;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.arrow-from-right {
+  align-self: flex-end;
+  margin-right: 25%;
+}
+
+.diagram-right {
+  align-self: flex-end;
+  margin-right: 25%;
 }
 </style>
