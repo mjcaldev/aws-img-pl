@@ -225,11 +225,98 @@ onUnmounted(() => {
   <div class="container">
     <header>
       <h1>🖼️ Smart Image Processing Pipeline</h1>
-      <p>
-        Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-        documentation
-      </p>
+      <p class="subtitle">Serverless AWS architecture for automated image analysis</p>
     </header>
+
+    <!-- Architecture Diagram -->
+    <section class="architecture-section">
+      <h2>System Architecture</h2>
+      <div class="diagram">
+        <div class="diagram-row">
+          <div class="diagram-box frontend">
+            <div class="box-icon">🌐</div>
+            <div class="box-label">Vue Frontend</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box api">
+            <div class="box-icon">🚪</div>
+            <div class="box-label">API Gateway</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box lambda">
+            <div class="box-icon">⚡</div>
+            <div class="box-label">Lambda</div>
+            <div class="box-sublabel">Presigned URL</div>
+          </div>
+        </div>
+        
+        <div class="diagram-row">
+          <div class="diagram-box frontend">
+            <div class="box-icon">📤</div>
+            <div class="box-label">Direct Upload</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box s3">
+            <div class="box-icon">🪣</div>
+            <div class="box-label">S3 Bucket</div>
+          </div>
+        </div>
+
+        <div class="diagram-row">
+          <div class="diagram-box s3">
+            <div class="box-icon">🪣</div>
+            <div class="box-label">S3 Event</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box stepfn">
+            <div class="box-icon">🔄</div>
+            <div class="box-label">Step Functions</div>
+            <div class="box-sublabel">Orchestration</div>
+          </div>
+        </div>
+
+        <div class="diagram-row">
+          <div class="diagram-box stepfn">
+            <div class="box-icon">🔄</div>
+            <div class="box-label">Pipeline</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box lambda">
+            <div class="box-icon">⚡</div>
+            <div class="box-label">Resize</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box rekognition">
+            <div class="box-icon">👁️</div>
+            <div class="box-label">Rekognition</div>
+            <div class="box-sublabel">Label Detection</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box dynamodb">
+            <div class="box-icon">💾</div>
+            <div class="box-label">DynamoDB</div>
+            <div class="box-sublabel">Metadata</div>
+          </div>
+        </div>
+
+        <div class="diagram-row">
+          <div class="diagram-box frontend">
+            <div class="box-icon">🔄</div>
+            <div class="box-label">Polling</div>
+          </div>
+          <div class="arrow">↔</div>
+          <div class="diagram-box api">
+            <div class="box-icon">🚪</div>
+            <div class="box-label">GET /results</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box dynamodb">
+            <div class="box-icon">💾</div>
+            <div class="box-label">DynamoDB</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <main class="upload-section">
       <div class="upload-card">
@@ -284,22 +371,140 @@ onUnmounted(() => {
 
 <style scoped>
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #f7fafc;
+  min-height: 100vh;
 }
 
 header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
+  color: #2d3748;
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 2.5rem;
   margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: #1a202c;
 }
 
+.subtitle {
+  font-size: 1.1rem;
+  color: #718096;
+  font-weight: 400;
+}
+
+/* Architecture Diagram */
+.architecture-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.architecture-section h2 {
+  text-align: center;
+  color: #2d3748;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.diagram-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.diagram-box {
+  background: #edf2f7;
+  color: #2d3748;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 120px;
+  border: 1px solid #cbd5e0;
+  transition: all 0.2s;
+}
+
+.diagram-box:hover {
+  background: #e2e8f0;
+  border-color: #a0aec0;
+}
+
+.diagram-box.frontend {
+  background: #ebf8ff;
+  border-color: #bee3f8;
+}
+
+.diagram-box.api {
+  background: #fef5e7;
+  border-color: #fbd38d;
+}
+
+.diagram-box.lambda {
+  background: #e6fffa;
+  border-color: #81e6d9;
+}
+
+.diagram-box.s3 {
+  background: #f0fff4;
+  border-color: #9ae6b4;
+}
+
+.diagram-box.stepfn {
+  background: #faf5ff;
+  border-color: #d6bcfa;
+}
+
+.diagram-box.rekognition {
+  background: #fffaf0;
+  border-color: #f6e05e;
+}
+
+.diagram-box.dynamodb {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+}
+
+.box-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.box-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.box-sublabel {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+.arrow {
+  font-size: 1.5rem;
+  color: #a0aec0;
+  font-weight: 500;
+}
+
+/* Upload Section */
 .upload-section {
   display: flex;
   justify-content: center;
@@ -307,11 +512,12 @@ h1 {
 
 .upload-card {
   background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
 }
 
 .file-input-wrapper {
@@ -324,113 +530,139 @@ h1 {
 
 .file-label {
   display: block;
-  padding: 1rem;
-  border: 2px dashed #3498db;
-  border-radius: 6px;
+  padding: 1.5rem;
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
   text-align: center;
   cursor: pointer;
-  color: #3498db;
+  color: #4a5568;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: #f7fafc;
 }
 
 .file-label:hover {
-  background: #ecf0f1;
+  background: #edf2f7;
+  border-color: #a0aec0;
+  color: #2d3748;
 }
 
 .btn-primary {
-  background: #3498db;
+  background: #4a5568;
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  padding: 1rem 2rem;
+  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2980b9;
+  background: #2d3748;
 }
 
 .btn-primary:disabled {
-  background: #bdc3c7;
+  background: #cbd5e0;
+  color: #a0aec0;
   cursor: not-allowed;
 }
 
 .status-message {
   margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 4px;
-  background: #d4edda;
-  color: #155724;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f0fff4;
+  color: #22543d;
   text-align: center;
+  font-weight: 500;
+  border: 1px solid #9ae6b4;
 }
 
 .status-message.error {
-  background: #f8d7da;
-  color: #721c24;
+  background: #fff5f5;
+  color: #742a2a;
+  border-color: #fc8181;
 }
 
 .polling-indicator {
   margin-top: 1rem;
   text-align: center;
-  color: #7f8c8d;
+  color: #718096;
   font-style: italic;
+  font-weight: 400;
 }
 
 .background-message {
   margin-top: 1.5rem;
-  padding: 1rem;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 6px;
+  padding: 1.5rem;
+  background: #fffaf0;
+  border: 1px solid #f6e05e;
+  border-radius: 8px;
   text-align: center;
 }
 
 .background-message p {
   margin: 0 0 1rem 0;
-  color: #856404;
+  color: #744210;
+  font-weight: 400;
 }
 
 .btn-secondary {
   background: white;
-  color: #3498db;
-  border: 2px solid #3498db;
-  padding: 0.6rem 1.5rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  color: #4a5568;
+  border: 1px solid #cbd5e0;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: #ecf0f1;
-  border-color: #2980b9;
+  background: #f7fafc;
+  border-color: #a0aec0;
+  color: #2d3748;
 }
 
 .results-section {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 2px solid #e2e8f0;
 }
 
 .results-section h3 {
   margin-bottom: 1rem;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  color: #2d3748;
+  font-weight: 600;
 }
 
 .labels-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
 }
 
 .label-item {
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  background: #f7fafc;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 500;
+  color: #2d3748;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.label-item:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
 }
 </style>
