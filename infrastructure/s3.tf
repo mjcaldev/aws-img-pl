@@ -34,7 +34,7 @@ resource "aws_s3_bucket_cors_configuration" "uploads" {
   bucket = aws_s3_bucket.uploads.id
 
   cors_rule {
-    allowed_origins = ["http://localhost:5173"]
+    allowed_origins = ["http://localhost:5173", "https://aws-img-pl.vercel.app", "https://stemhub.pro"]
     allowed_methods = ["PUT", "GET", "HEAD"]
     allowed_headers = ["*"]
     expose_headers  = ["ETag"]

@@ -232,6 +232,7 @@ onUnmounted(() => {
     <section class="architecture-section">
       <h2>System Architecture</h2>
       <div class="diagram">
+        <!-- Upload Request Flow -->
         <div class="diagram-row">
           <div class="diagram-box frontend">
             <div class="box-icon">🌐</div>
@@ -241,44 +242,57 @@ onUnmounted(() => {
           <div class="diagram-box api">
             <div class="box-icon">🚪</div>
             <div class="box-label">API Gateway</div>
+            <div class="box-sublabel">POST /upload-url</div>
           </div>
           <div class="arrow">→</div>
           <div class="diagram-box lambda">
             <div class="box-icon">⚡</div>
             <div class="box-label">Lambda</div>
-            <div class="box-sublabel">Presigned URL</div>
+            <div class="box-sublabel">Presigned URL Generator</div>
           </div>
         </div>
         
+        <!-- Direct Upload Flow -->
         <div class="diagram-row">
           <div class="diagram-box frontend">
-            <div class="box-icon">📤</div>
-            <div class="box-label">Direct Upload</div>
+            <div class="box-icon">🌐</div>
+            <div class="box-label">Vue Frontend</div>
           </div>
           <div class="arrow">→</div>
           <div class="diagram-box s3">
             <div class="box-icon">🪣</div>
             <div class="box-label">S3 Bucket</div>
+            <div class="box-sublabel">PUT (Presigned URL)</div>
           </div>
         </div>
 
+        <!-- Event Trigger Flow -->
         <div class="diagram-row">
           <div class="diagram-box s3">
             <div class="box-icon">🪣</div>
-            <div class="box-label">S3 Event</div>
+            <div class="box-label">S3 Bucket</div>
+            <div class="box-sublabel">ObjectCreated Event</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box lambda">
+            <div class="box-icon">⚡</div>
+            <div class="box-label">Lambda</div>
+            <div class="box-sublabel">Trigger</div>
           </div>
           <div class="arrow">→</div>
           <div class="diagram-box stepfn">
             <div class="box-icon">🔄</div>
             <div class="box-label">Step Functions</div>
-            <div class="box-sublabel">Orchestration</div>
+            <div class="box-sublabel">StartExecution</div>
           </div>
         </div>
 
+        <!-- Processing Pipeline -->
         <div class="diagram-row">
           <div class="diagram-box stepfn">
             <div class="box-icon">🔄</div>
-            <div class="box-label">Pipeline</div>
+            <div class="box-label">Step Functions</div>
+            <div class="box-sublabel">State Machine</div>
           </div>
           <div class="arrow">→</div>
           <div class="diagram-box lambda">
@@ -289,30 +303,52 @@ onUnmounted(() => {
           <div class="diagram-box rekognition">
             <div class="box-icon">👁️</div>
             <div class="box-label">Rekognition</div>
-            <div class="box-sublabel">Label Detection</div>
           </div>
           <div class="arrow">→</div>
           <div class="diagram-box dynamodb">
             <div class="box-icon">💾</div>
-            <div class="box-label">DynamoDB</div>
-            <div class="box-sublabel">Metadata</div>
+            <div class="box-label">Store Metadata</div>
           </div>
         </div>
 
+        <!-- Output Flow -->
+        <div class="diagram-row">
+          <div class="diagram-box stepfn">
+            <div class="box-icon">🔄</div>
+            <div class="box-label">Step Functions</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="diagram-box s3">
+            <div class="box-icon">🪣</div>
+            <div class="box-label">S3</div>
+            <div class="box-sublabel">processed/</div>
+          </div>
+          <div class="arrow" style="margin-left: 2rem;">→</div>
+          <div class="diagram-box dynamodb">
+            <div class="box-icon">💾</div>
+            <div class="box-label">DynamoDB</div>
+            <div class="box-sublabel">metadata</div>
+          </div>
+        </div>
+
+        <!-- Polling Flow -->
         <div class="diagram-row">
           <div class="diagram-box frontend">
-            <div class="box-icon">🔄</div>
-            <div class="box-label">Polling</div>
+            <div class="box-icon">🌐</div>
+            <div class="box-label">Vue Frontend</div>
+            <div class="box-sublabel">Polling</div>
           </div>
           <div class="arrow">↔</div>
           <div class="diagram-box api">
             <div class="box-icon">🚪</div>
-            <div class="box-label">GET /results</div>
+            <div class="box-label">API Gateway</div>
+            <div class="box-sublabel">GET /results</div>
           </div>
           <div class="arrow">→</div>
           <div class="diagram-box dynamodb">
             <div class="box-icon">💾</div>
             <div class="box-label">DynamoDB</div>
+            <div class="box-sublabel">metadata</div>
           </div>
         </div>
       </div>

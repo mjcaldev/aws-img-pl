@@ -4,7 +4,7 @@ resource "aws_apigatewayv2_api" "http_api" {
 
   # ADDED: CORS configuration (FIXES browser preflight failure)
   cors_configuration {
-    allow_origins = ["http://localhost:5173"]
+    allow_origins = ["http://localhost:5173", "https://aws-img-pl.vercel.app", "https://stemhub.pro"]
     allow_methods = ["POST", "GET", "OPTIONS"]
     allow_headers = ["content-type"]
   }
