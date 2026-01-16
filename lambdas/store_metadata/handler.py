@@ -33,7 +33,9 @@ def lambda_handler(event, context):
 
         # Use original key for lookup (what frontend polls with)
         # Fallback to processed_key if original_key not available
-        image_key = original_key if original_key else processed_key
+        if not original_key:
+            raise ValueError("Missing required field: key (original upload key)")
+        image_key = original_key
         
         logger.info(f"Storing metadata: image_key={image_key}, processed_key={processed_key}, labels_count={len(labels)}")
 

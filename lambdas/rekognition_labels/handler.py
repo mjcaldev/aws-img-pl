@@ -17,7 +17,6 @@ def lambda_handler(event, context):
     labels = [label["Name"] for label in response["Labels"]]
 
     return {
-        "bucket": bucket,
-        "processed_key": key,
+        **event,
         "labels": labels
     }
